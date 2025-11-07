@@ -1,0 +1,183 @@
+#include <stdio.h>
+#include <math.h>
+
+#define MAX_POINTS 10
+
+// Структура для хранения узлов
+typedef struct {
+    double x;
+    double y;
+} Point;
+
+// Функции численного дифференцирования
+double right_difference(Point* points, int i, double h) {
+    return (points[i+1].y - points[i].y) / h;
+}
+
+double left_difference(Point* points, int i, double h) {
+    return (points[i].y - points[i-1].y) / h;
+}
+
+double central_difference(Point* points, int i, double h) {
+    return (points[i+1].y - points[i-1].y) / (2 * h);
+}
+
+double second_derivative(Point* points, int i, double h) {
+    return (points[i+1].y - 2 * points[i].y + points[i-1].y) / (h * h);
+}
+
+double three_point_derivative(Point* points, int i, double h) {
+    return (-points[i+2].y + 4 * points[i+1].y - 3 * points[i].y) / (2 * h);
+}
+
+int main() {
+    int n;
+    Point points[MAX_POINTS];
+    
+    printf("Численное дифференцирование\n");
+    printf("===========================\n\n");
+    
+    // Ввод количества точек
+    printf("Введите количество точек (минимум 3, максимум %d): ", MAX_POINTS);
+    scanf("%d", &n);
+    
+    if (n < 3 || n > MAX_POINTS) {
+        printf("Ошибка: количество точек должно быть от 3 до %d\n", MAX_POINTS);
+        return 1;
+    }
+    
+    // Ввод точек
+    printf("\nВведите точки (x y) в порядке возрастания x:\n");
+    for (int i = 0; i < n; i++) {
+        printf("Точка %d: ", i + 1);
+        scanf("%lf %lf", &points[i].x, &points[i].y);
+        
+        // Проверка упорядоченности
+        if (i > 0 && points[i].x <= points[i-1].x) {
+            printf("Ошибка: точки должны быть упорядочены по возрастанию x\n");
+            return 1;
+        }
+    }
+    
+    // Проверка равномерности шага
+    double h = points[1].x - points[0].x;
+    int uniform = 1;
+    for (int i = 1; i < n-1; i++) {
+        if (fabs((points[i+1].x - points[i].x) - h) > 1e-10) {
+            uniform = 0;
+            break;
+        }
+    }
+    
+    if (!uniform) {
+        printf("\nВнимание: точки не равноотстоящие! Используется средний шаг h = %.6f\n", h);
+    }
+    
+    printf("\nШаг h = %.6f\n\n", h);
+    
+    // Вывод таблицы точек
+    printf("Таблица точек:\n");
+    printf("i\tx_i\t\ty_i\n");
+    printf("----------------------------\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%.6f\t%.6f\n", i, points[i].x, points[i].y);
+    }
+    printf("\n");
+    
+    // Вычисление производных для всех возможных точек
+    printf("Результаты численного дифференцирования:\n");
+    printf("================================================================================\n");
+    printf("i\tx_i\t\tПравая f'\tЛевая f'\tЦентр. f'\t3-точ. f'\tf''\n");
+    printf("--------------------------------------------------------------------------------\n");
+    
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%.6f", i, points[i].x);
+        
+        // Правая разностная производная (для i = 0..n-2)
+        if (i < n-1) {
+            printf("\t%.6f", right_difference(points, i, h));
+        } else {
+            printf("\t--------");
+        }
+        
+        // Левая разностная производная (для i = 1..n-1)
+        if (i > 0) {
+            printf("\t%.6f", left_difference(points, i, h));
+        } else {
+            printf("\t--------");
+        }
+        
+        // Центральная разностная производная (для i = 1..n-2)
+        if (i > 0 && i < n-1) {
+            printf("\t%.6f", central_difference(points, i, h));
+        } else {
+            printf("\t--------");
+        }
+        
+        // Трехточечная производная (для i = 0..n-3)
+        if (i < n-2) {
+            printf("\t%.6f", three_point_derivative(points, i, h));
+        } else {
+            printf("\t--------");
+        }
+        
+        // Вторая производная (для i = 1..n-2)
+        if (i > 0 && i < n-1) {
+            printf("\t%.6f", second_derivative(points, i, h));
+        } else {
+            printf("\t--------");
+        }
+        
+        printf("\n");
+    }
+    
+    // Дополнительный анализ для конкретной точки
+    printf("\nДетальный анализ для конкретной точки:\n");
+    printf("Введите индекс точки i (0-%d): ", n-1);
+    int selected_i;
+    scanf("%d", &selected_i);
+    
+    if (selected_i < 0 || selected_i >= n) {
+        printf("Неверный индекс точки\n");
+        return 1;
+    }
+    
+    printf("\nАнализ для точки x_%d = %.6f, y_%d = %.6f:\n", 
+           selected_i, points[selected_i].x, selected_i, points[selected_i].y);
+    printf("----------------------------------------\n");
+    
+    if (selected_i < n-1) {
+        printf("Правая разностная: f'(x_%d) ≈ (y_%d - y_%d)/h = (%.6f - %.6f)/%.6f = %.6f\n",
+               selected_i, selected_i+1, selected_i, 
+               points[selected_i+1].y, points[selected_i].y, h,
+               right_difference(points, selected_i, h));
+    }
+    
+    if (selected_i > 0) {
+        printf("Левая разностная:  f'(x_%d) ≈ (y_%d - y_%d)/h = (%.6f - %.6f)/%.6f = %.6f\n",
+               selected_i, selected_i, selected_i-1,
+               points[selected_i].y, points[selected_i-1].y, h,
+               left_difference(points, selected_i, h));
+    }
+    
+    if (selected_i > 0 && selected_i < n-1) {
+        printf("Центральная:       f'(x_%d) ≈ (y_%d - y_%d)/(2h) = (%.6f - %.6f)/(2*%.6f) = %.6f\n",
+               selected_i, selected_i+1, selected_i-1,
+               points[selected_i+1].y, points[selected_i-1].y, h,
+               central_difference(points, selected_i, h));
+        
+        printf("Вторая производная: f''(x_%d) ≈ (y_%d - 2y_%d + y_%d)/h² = (%.6f - 2*%.6f + %.6f)/%.6f = %.6f\n",
+               selected_i, selected_i+1, selected_i, selected_i-1,
+               points[selected_i+1].y, points[selected_i].y, points[selected_i-1].y, h*h,
+               second_derivative(points, selected_i, h));
+    }
+    
+    if (selected_i < n-2) {
+        printf("Трехточечная:      f'(x_%d) ≈ (-y_%d + 4y_%d - 3y_%d)/(2h) = (-%.6f + 4*%.6f - 3*%.6f)/(2*%.6f) = %.6f\n",
+               selected_i, selected_i+2, selected_i+1, selected_i,
+               points[selected_i+2].y, points[selected_i+1].y, points[selected_i].y, h,
+               three_point_derivative(points, selected_i, h));
+    }
+    
+    return 0;
+}
