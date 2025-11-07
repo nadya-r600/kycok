@@ -1,0 +1,116 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Структура для хранения узлов интерполяции
+typedef struct {
+    double x;
+    double y;
+} Point;
+
+// Функция кусочно-линейной интерполяции
+double linear_interpolation(Point* points, int n, double x) {
+    // Проверка границ
+    if (x <= points[0].x) {
+        return points[0].y;
+    }
+    if (x >= points[n-1].x) {
+        return points[n-1].y;
+    }
+    
+    // Поиск интервала, содержащего x
+    int i = 0;
+    while (i < n-1 && x > points[i+1].x) {
+        i++;
+    }
+    
+    // Линейная интерполяция на найденном интервале
+    double x0 = points[i].x;
+    double x1 = points[i+1].x;
+    double y0 = points[i].y;
+    double y1 = points[i+1].y;
+    
+    return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+}
+
+int main() {
+    int n, steps;
+    Point* points = NULL;
+    double x, y;
+    
+    printf("Кусочно-линейная интерполяция\n");
+    printf("=============================\n\n");
+    
+    // Ввод количества точек
+    printf("Введите количество точек интерполяции: ");
+    scanf("%d", &n);
+    
+    if (n < 2) {
+        printf("Ошибка: нужно как минимум 2 точки\n");
+        return 1;
+    }
+    
+    // Выделение памяти для точек
+    points = (Point*)malloc(n * sizeof(Point));
+    if (!points) {
+        printf("Ошибка выделения памяти\n");
+        return 1;
+    }
+    
+    // Ввод точек
+    printf("\nВведите точки (x y) в порядке возрастания x:\n");
+    for (int i = 0; i < n; i++) {
+        printf("Точка %d: ", i + 1);
+        scanf("%lf %lf", &points[i].x, &points[i].y);
+        
+        // Проверка упорядоченности
+        if (i > 0 && points[i].x <= points[i-1].x) {
+            printf("Ошибка: точки должны быть упорядочены по возрастанию x\n");
+            free(points);
+            return 1;
+        }
+    }
+    
+    // Ввод количества шагов для интерполяции
+    printf("\nВведите количество шагов для интерполяции: ");
+    scanf("%d", &steps);
+    
+    if (steps <= 0) {
+        printf("Ошибка: количество шагов должно быть положительным\n");
+        free(points);
+        return 1;
+    }
+    
+    // Вывод введенных точек
+    printf("\nВведенные точки:\n");
+    for (int i = 0; i < n; i++) {
+        printf("(%.2f, %.2f) ", points[i].x, points[i].y);
+    }
+    printf("\n\n");
+    
+    // Интерполяция в различных точках
+    printf("Результаты интерполяции (%d шагов):\n", steps);
+    printf("x\t\ty\n");
+    printf("-------------------\n");
+    
+    // Интерполяция с заданным количеством шагов
+    double min_x = points[0].x;
+    double max_x = points[n-1].x;
+    double step = (max_x - min_x) / steps;
+    
+    for (int i = 0; i <= steps; i++) {
+        double xi = min_x + i * step;
+        y = linear_interpolation(points, n, xi);
+        printf("%.2f\t\t%.4f\n", xi, y);
+    }
+    
+    // Интерполяция в произвольной точке
+    printf("\nВведите произвольное значение x для интерполяции: ");
+    scanf("%lf", &x);
+    y = linear_interpolation(points, n, x);
+    printf("f(%.2f) = %.4f\n", x, y);
+    
+    // Освобождение памяти
+    free(points);
+    
+    return 0;
+}
