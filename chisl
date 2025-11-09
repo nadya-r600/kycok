@@ -1,116 +1,75 @@
 #include <stdio.h>
-#include <stdlib.h>
-
-// Структура для хранения узлов интерполяции
-typedef struct {
-    double x;
-    double y;
-} Point;
 
 // Функция кусочно-линейной интерполяции
-double linear_interpolation(Point* points, int n, double x) {
+double linear_interpolation(double x[], double y[], int n, double target_x) {
     // Проверка границ
-    if (x <= points[0].x) {
-        return points[0].y;
+    if (target_x <= x[0]) {
+        return y[0];
     }
-    if (x >= points[n-1].x) {
-        return points[n-1].y;
+    if (target_x >= x[n - 1]) {
+        return y[n - 1];
     }
-    
-    // Поиск интервала, содержащего x
+
+    // Поиск интервала, содержащего target_x
     int i = 0;
-    while (i < n-1 && x > points[i+1].x) {
+    while (i < n - 1 && target_x > x[i + 1]) {
         i++;
     }
-    
+
     // Линейная интерполяция на найденном интервале
-    double x0 = points[i].x;
-    double x1 = points[i+1].x;
-    double y0 = points[i].y;
-    double y1 = points[i+1].y;
-    
-    return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+    double x0 = x[i];
+    double x1 = x[i + 1];
+    double y0 = y[i];
+    double y1 = y[i + 1];
+
+    return y0 + (y1 - y0) * (target_x - x0) / (x1 - x0);
 }
 
 int main() {
-    int n, steps;
-    Point* points = NULL;
-    double x, y;
+    // Данные из таблицы
+    double x[] = { 0.1, 0.2, 0.4 };
+    double y[] = { 10.0, 5.0, 2.5 };
+    int n = sizeof(x) / sizeof(x[0]);
+    double t_x = 0.25;
+
+    printf("piecewise linear interpolation\n");
     
-    printf("Кусочно-линейная интерполяция\n");
-    printf("=============================\n\n");
-    
-    // Ввод количества точек
-    printf("Введите количество точек интерполяции: ");
-    scanf("%d", &n);
-    
-    if (n < 2) {
-        printf("Ошибка: нужно как минимум 2 точки\n");
-        return 1;
-    }
-    
-    // Выделение памяти для точек
-    points = (Point*)malloc(n * sizeof(Point));
-    if (!points) {
-        printf("Ошибка выделения памяти\n");
-        return 1;
-    }
-    
-    // Ввод точек
-    printf("\nВведите точки (x y) в порядке возрастания x:\n");
-    for (int i = 0; i < n; i++) {
-        printf("Точка %d: ", i + 1);
-        scanf("%lf %lf", &points[i].x, &points[i].y);
-        
-        // Проверка упорядоченности
-        if (i > 0 && points[i].x <= points[i-1].x) {
-            printf("Ошибка: точки должны быть упорядочены по возрастанию x\n");
-            free(points);
-            return 1;
-        }
-    }
-    
-    // Ввод количества шагов для интерполяции
-    printf("\nВведите количество шагов для интерполяции: ");
-    scanf("%d", &steps);
-    
-    if (steps <= 0) {
-        printf("Ошибка: количество шагов должно быть положительным\n");
-        free(points);
-        return 1;
-    }
-    
-    // Вывод введенных точек
-    printf("\nВведенные точки:\n");
-    for (int i = 0; i < n; i++) {
-        printf("(%.2f, %.2f) ", points[i].x, points[i].y);
-    }
-    printf("\n\n");
-    
-    // Интерполяция в различных точках
-    printf("Результаты интерполяции (%d шагов):\n", steps);
+    // Вывод исходных данных
     printf("x\t\ty\n");
     printf("-------------------\n");
-    
-    // Интерполяция с заданным количеством шагов
-    double min_x = points[0].x;
-    double max_x = points[n-1].x;
-    double step = (max_x - min_x) / steps;
-    
-    for (int i = 0; i <= steps; i++) {
-        double xi = min_x + i * step;
-        y = linear_interpolation(points, n, xi);
-        printf("%.2f\t\t%.4f\n", xi, y);
+    for (int i = 0; i < n; i++) {
+        printf("%.1f\t\t%.1f\n", x[i], y[i]);
     }
-    
-    // Интерполяция в произвольной точке
-    printf("\nВведите произвольное значение x для интерполяции: ");
-    scanf("%lf", &x);
-    y = linear_interpolation(points, n, x);
-    printf("f(%.2f) = %.4f\n", x, y);
-    
-    // Освобождение памяти
-    free(points);
-    
-    return 0;
+    printf("\n");
+
+    // Поиск интервала для x = 0.25
+    int i = 0;
+    while (i < n - 1 && t_x > x[i + 1]) {
+        i++;
+    }
+
+    printf("x = %.2f:\n", t_x);
+    printf("interval: [%.1f, %.1f]\n", x[i], x[i + 1]);
+    printf("points: (%.1f, %.1f) and (%.1f, %.1f)\n",
+        x[i], y[i], x[i + 1], y[i + 1]);
+
+    // Вычисление интерполяции
+    double x0 = x[i], x1 = x[i + 1];
+    double y0 = y[i], y1 = y[i + 1];
+    double result = linear_interpolation(x, y, n, t_x);
+
+    printf("\nformula:\n");
+    printf("y = y0 + (y1 - y0) * (x - x0) / (x1 - x0)\n");
+    printf("y = %.1f + (%.1f - %.1f) * (%.2f - %.1f) / (%.1f - %.1f)\n",
+        y0, y1, y0, t_x, x0, x1, x0);
+
+    printf("1. (y1 - y0) = %.1f - %.1f = %.1f\n", y1, y0, y1 - y0);
+    printf("2. (x - x0) = %.2f - %.1f = %.2f\n", t_x, x0, t_x - x0);
+    printf("3. (x1 - x0) = %.1f - %.1f = %.1f\n", x1, x0, x1 - x0);
+    printf("4. (y1 - y0) * (x - x0) / (x1 - x0) = %.1f * %.2f / %.1f = %.3f\n",
+        y1 - y0, t_x - x0, x1 - x0, (y1 - y0) * (t_x - x0) / (x1 - x0));
+    printf("5. y = %.1f + %.3f = %.3f\n", y0, (y1 - y0) * (t_x - x0) / (x1 - x0), result);
+
+    printf("\nresults: f(%.2f) = %.3f\n", t_x, result);
+
 }
