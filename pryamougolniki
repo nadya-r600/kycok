@@ -3,15 +3,15 @@
 
 // Функция для вычисления интеграла методом прямоугольников
 double rectangle_integral(double (*f)(double), double a, double b, int n) {
-    double h = (b - a) / n;
+    double h = (b - a) / n;//шаг
     double sum = 0.0;
-    
+
     for (int i = 0; i < n; i++) {
-        double x = a + (i + 0.5) * h;  // средняя точка
+        double x = a + (i + 0.5) * h;  // середина
         sum += f(x);
     }
-    
-    return sum * h;
+
+    return sum * h;//площадь 
 }
 
 // Первая функция: f(x) = 2x + 1
@@ -19,9 +19,9 @@ double f1(double x) {
     return 2 * x + 1;
 }
 
-// Точное значение интеграла для f1 на [0, 2]
+// значение интеграла при 0 и 2
 double exact_f1(double a, double b) {
-    // ∫(2x + 1)dx = x² + x
+    //x^2+x
     return (b * b + b) - (a * a + a);
 }
 
@@ -30,105 +30,106 @@ double f2(double x) {
     return sin(x);
 }
 
-// Точное значение интеграла для f2 на [0, π]
+// значение интеграла при 0 и пи
 double exact_f2(double a, double b) {
-    // ∫sin(x)dx = -cos(x)
+    // -cos(x)
     return (-cos(b)) - (-cos(a));
 }
 
 // Оценка погрешности по правилу Рунге
-double runge_error(double I_h, double I_h2, int p) {
-    // p = 2 для метода прямоугольников (порядок точности)
-    return fabs(I_h - I_h2) / (pow(2, p) - 1);
+double runge_error(double I_h, double I_h2, int k) {
+    // k = 2 для метода прямоугольников 
+    return fabs(I_h - I_h2) / (pow(2, k) - 1);
 }
 
 int main() {
     // Пределы интегрирования
     double a1 = 0.0, b1 = 2.0;    // для первой функции
-    double a2 = 0.0, b2 = M_PI;   // для второй функции
-    
-    // Начальное количество разбиений
+    double a2 = 0.0, b2 = 3.14;   // для второй функции
+
+    // количество разбиений
     int n = 10;
-    
+
     printf("========================================\n");
-    printf("ВЫЧИСЛЕНИЕ ИНТЕГРАЛОВ МЕТОДОМ ПРЯМОУГОЛЬНИКОВ\n");
+    printf("Prymougolniki\n");
     printf("========================================\n\n");
-    
-    // Первый интеграл: ∫(2x + 1)dx от 0 до 2
-    printf("1. ∫(2x + 1)dx от 0 до 2:\n");
+
+    // Первый интеграл
+    printf("1. integral (2x + 1)dx ot 0 do 2:\n");
     printf("   ----------------------------\n");
-    
-    // Точное значение
+
+    // значение при вычислении интеграла
     double exact1 = exact_f1(a1, b1);
-    printf("   Точное значение: %.10f\n", exact1);
-    
-    // Вычисление с разным количеством разбиений
+    printf("value: %.10f\n", exact1);
+
+    // вычисление при разбиении
     for (int k = 1; k <= 3; k++) {
         int n_current = n * k;
-        
+
         // Интеграл с шагом h
         double I_h = rectangle_integral(f1, a1, b1, n_current);
-        
+
         // Интеграл с шагом h/2
         double I_h2 = rectangle_integral(f1, a1, b1, n_current * 2);
-        
+
         // Погрешность по правилу Рунге
         double error = runge_error(I_h, I_h2, 2);
-        
-        printf("   n = %d: I = %.10f, погрешность = %.10f\n", 
-               n_current, I_h, fabs(I_h - exact1));
-        printf("           оценка Рунге = %.10f\n", error);
+
+        printf("   n = %d: I = %.10f, pogreshnost = %.10f\n",
+            n_current, I_h, fabs(I_h - exact1));
+        printf("runge = %.10f\n", error);
     }
-    
+
     printf("\n");
-    
+
     // Второй интеграл: ∫sin(x)dx от 0 до π
-    printf("2. ∫sin(x)dx от 0 до π:\n");
+    printf("2. integral sin(x)dx ot 0 do pi:\n");
     printf("   ---------------------\n");
-    
+
     // Точное значение
     double exact2 = exact_f2(a2, b2);
-    printf("   Точное значение: %.10f\n", exact2);
-    
+    printf("value: %.10f\n", exact2);
+
     // Вычисление с разным количеством разбиений
     for (int k = 1; k <= 3; k++) {
         int n_current = n * k;
-        
+
         // Интеграл с шагом h
         double I_h = rectangle_integral(f2, a2, b2, n_current);
-        
+
         // Интеграл с шагом h/2
         double I_h2 = rectangle_integral(f2, a2, b2, n_current * 2);
-        
+
         // Погрешность по правилу Рунге
         double error = runge_error(I_h, I_h2, 2);
-        
-        printf("   n = %d: I = %.10f, погрешность = %.10f\n", 
-               n_current, I_h, fabs(I_h - exact2));
-        printf("           оценка Рунге = %.10f\n", error);
+
+        printf("   n = %d: I = %.10f, pogreshnist = %.10f\n",
+            n_current, I_h, fabs(I_h - exact2));
+        printf("runge = %.10f\n", error);
     }
-    
+
     printf("\n");
-    
+
     // Сравнение точных значений с численными (для n = 100)
-    printf("3. СРАВНЕНИЕ С ТОЧНЫМИ ЗНАЧЕНИЯМИ (n = 100):\n");
+    printf("3. sravnenie (n = 100):\n");
     printf("   ----------------------------------------\n");
-    
+
     n = 100;
-    
+
     // Первый интеграл
     double I1 = rectangle_integral(f1, a1, b1, n);
-    printf("   ∫(2x + 1)dx от 0 до 2:\n");
-    printf("   Численное: %.10f, Точное: %.10f\n", I1, exact1);
-    printf("   Абсолютная погрешность: %.10f\n", fabs(I1 - exact1));
-    printf("   Относительная погрешность: %.6f%%\n\n", fabs(I1 - exact1)/exact1 * 100);
-    
+    printf("   integral (2x + 1)dx ot 0 do 2:\n");
+    printf("   chisel: %.10f, value: %.10f\n", I1, exact1);
+    printf("   absolut: %.10f\n", fabs(I1 - exact1));
+    printf("   otnos: %.6f%%\n\n", fabs(I1 - exact1) / exact1 * 100);
+
     // Второй интеграл
     double I2 = rectangle_integral(f2, a2, b2, n);
-    printf("   ∫sin(x)dx от 0 до π:\n");
-    printf("   Численное: %.10f, Точное: %.10f\n", I2, exact2);
-    printf("   Абсолютная погрешность: %.10f\n", fabs(I2 - exact2));
-    printf("   Относительная погрешность: %.6f%%\n", fabs(I2 - exact2)/exact2 * 100);
-    
+    printf("   integralsin(x)dx ot 0 do pi:\n");
+    printf("   chisel: %.10f, value: %.10f\n", I2, exact2);
+    printf("   absolut: %.10f\n", fabs(I2 - exact2));
+    printf("   otnos: %.6f%%\n", fabs(I2 - exact2) / exact2 * 100);
+
     return 0;
+}
 }
